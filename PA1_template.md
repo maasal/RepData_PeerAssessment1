@@ -7,7 +7,7 @@
 data <- read.csv("activity.csv")
 ```
 
-### Using lubridate package to process date data
+Using lubridate package to process date data appropriately
 
 ```r
 library(lubridate)
@@ -27,7 +27,7 @@ hist(stepsPerDay, col = "navyblue", main="Histogram of steps taken each day",
 
 ![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
 
-We calculate the mean and the meadian of steps taken
+We calculate the mean and the median of steps taken
 
 
 ```r
@@ -149,7 +149,59 @@ median(stepsPerDay2)
 ## [1] 10766.19
 ```
 
-Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+The is some difference to the data having missing values on the median (by contruction there
+is no difference to mean!). Lets calculate the differences for
+mean and median values.
+
+```r
+mean(stepsPerDay2) - mean(stepsPerDay,na.rm=TRUE)
+```
+
+```
+## [1] 0
+```
+
+```r
+median(stepsPerDay2) - median(stepsPerDay,na.rm=TRUE)
+```
+
+```
+## [1] 1.188679
+```
+
+That is, filling the missing values, raises the meadian steps by a little more than one step.
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+Let's first change the date column to weekday form and then create a factor variable for weekends. Then calculate the new aggregated variable with the new weekend variable
+put in.
+
+```r
+newData$date <- weekdays(newData$date,TRUE)
+newData$weekday <- 1
+for(i in 1:nrow(newData)){
+    if(newData[i,2]=="Sat" | newData[i,2] == "Sun"){
+        newData[i,5] <- "Weekend"
+    } else {
+        newData[i,5] <- "Weekday"
+    }
+}
+newData$weekday <- factor(newData$weekday)
+stepsOnIntervals2 <- aggregate(steps ~ interval + weekday, data= newData, mean)
+```
+
+Let's fire up lattice plotting system
+
+```r
+library(lattice)
+xyplot(steps ~ interval | weekday,type = "l", data = stepsOnIntervals2, layout = c(1,2))
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
+
+### Some speculation on the graph
+
+As indicated by the plot the weekends have more smooth activity pattern, this might
+be because on weekdays the subject is working (office job, sitting etc.) and during
+weekends there is no need to be as passive during this period.
+
